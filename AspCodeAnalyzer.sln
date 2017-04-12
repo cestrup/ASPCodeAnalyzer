@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspCodeAnalyzer", "AspCodeAnalyzer.csproj", "{7EE74A8A-BB8C-4C77-84F6-4E796B4F2F26}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{7EE74A8A-BB8C-4C77-84F6-4E796B4F2F26}.Debug.ActiveCfg = Debug|.NET
+		{7EE74A8A-BB8C-4C77-84F6-4E796B4F2F26}.Debug.Build.0 = Debug|.NET
+		{7EE74A8A-BB8C-4C77-84F6-4E796B4F2F26}.Release.ActiveCfg = Release|.NET
+		{7EE74A8A-BB8C-4C77-84F6-4E796B4F2F26}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
