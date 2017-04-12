@@ -34,11 +34,15 @@ namespace AspCodeAnalyzer {
           while ( j < curVar.Length && IsVariableCharacter( curVar[ j]) ) {
             j++;
           }
-          curVar = curVar.Substring( 0, j);
-          Variable var = new Variable( curVar, pReader.GetLineNumber());
-          pVariables.Add( var);     
-          found = true;
-        }          
+
+		  if (j > 0)
+			{
+				curVar = curVar.Substring(0, j);
+				Variable var = new Variable(curVar, pReader.GetLineNumber());
+				pVariables.Add(var);
+				found = true;
+			}
+		}          
       }
       return found;
     }
@@ -61,7 +65,7 @@ namespace AspCodeAnalyzer {
     public static bool ContainsIdentifier( String pText, String pIdentifier) {
       int pos = pText.IndexOf( pIdentifier);
       while (pos > 0) {
-        if (pos == 0 || !AspTool.IsVariableCharacter( pText[ pos - 1 ])) {
+        if (pos == 0 || ((pText[pos-1] != '.') && !AspTool.IsVariableCharacter( pText[ pos - 1 ]))) {
           if (pos + pIdentifier.Length >= pText.Length || !AspTool.IsVariableCharacter( pText[ pos + pIdentifier.Length])) {
             return true;
           }
