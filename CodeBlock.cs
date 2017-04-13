@@ -1,54 +1,22 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer 
 {
   public class CodeBlock 
   {
-    private int _col;
-    private int _row;
-    private ArrayList _text = new ArrayList();
     private LineReader _lineReader;
 
-    public int Col 
-    {
-      get 
-      {
-        return _col;
-      }
-      set 
-      {
-        _col = value;
-      }
-    }
+    public int Col { get; set; }
+    public int Row { get; set; }
+    public List<string> Text { get; } = new List<string>();
 
-    public int Row 
-    {
-      get 
-      {
-        return _row;
-      }
-      set 
-      {
-        _row = value;
-      }
-    }
-
-    public ArrayList Text 
-    {
-      get 
-      {
-        return _text;
-      }
-    }
-
-    public CodeBlock( LineReader pLineReader) 
+    public CodeBlock( LineReader pLineReader)
     {
       _lineReader = pLineReader;
-      _col = _lineReader.Col;
-      _row = _lineReader.Row;
-      _text.Add( "");
+      Col = _lineReader.Col;
+      Row = _lineReader.Row;
+      Text.Add( "");
     }
 
 
@@ -86,7 +54,7 @@ namespace AspCodeAnalyzer
       {
         pChar = ' ';
       }
-      _text[ _text.Count - 1] = ((String) _text[ _text.Count - 1]) + pChar;
+      Text[ Text.Count - 1] = Text[ Text.Count - 1] + pChar;
     }
 
     public void Read() 
@@ -111,7 +79,7 @@ namespace AspCodeAnalyzer
           int pos =_lineReader.CurLine.IndexOf( "%>", _lineReader.Col);
           if ( pos == -1 ) 
           {
-            _text.Add( "");
+            Text.Add( "");
             _lineReader.ReadLine();
           } 
           else 
@@ -126,25 +94,25 @@ namespace AspCodeAnalyzer
         }
         if (_lineReader.Eol) 
         {
-          _text.Add( "");
+          Text.Add( "");
           _lineReader.ReadLine();
         }        
       }
     }
 
-    public void AddText( String pText) 
+    public void AddText( string pText)
     {
       if (pText.Trim().IndexOf( "\'") == 0 ) 
       {
-        _text.Add( "");
+        Text.Add( "");
       } 
       else if (pText.Trim().IndexOf( "//") == 0 )  
       {
-        _text.Add( "");
+        Text.Add( "");
       }
       else 
       {
-        _text.Add( pText);
+        Text.Add( pText);
       }
     }
   }

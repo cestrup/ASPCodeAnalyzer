@@ -1,16 +1,16 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer {
 
   public class BlockReader {
-    private ArrayList _blocks;
+    private List<CodeBlock> _blocks;
     private CodeBlock _curBlock;
     private int _curLineNumber;
     private bool _eof = false;
-    private String _curLine;
+    private string _curLine;
 
-    public BlockReader( ArrayList pBlocks) {
+    public BlockReader( List<CodeBlock> pBlocks) {
       _blocks = pBlocks;
     }
 
@@ -26,9 +26,9 @@ namespace AspCodeAnalyzer {
           return;
         }
         _curLineNumber = 0;
-        _curBlock = (CodeBlock) _blocks[ 0];
+        _curBlock = _blocks[ 0];
         _blocks.RemoveAt( 0);
-        _curLine = (String) _curBlock.Text[ _curLineNumber];
+        _curLine = _curBlock.Text[ _curLineNumber];
         return;
       }
       _curLineNumber++;
@@ -39,12 +39,12 @@ namespace AspCodeAnalyzer {
           return;
         }
         _curLineNumber = 0;
-        _curBlock = (CodeBlock) _blocks[ 0];
+        _curBlock = _blocks[ 0];
         _blocks.RemoveAt( 0);
-        _curLine = (String) _curBlock.Text[ _curLineNumber];
+        _curLine = _curBlock.Text[ _curLineNumber];
         return;
       }
-      _curLine = (String) _curBlock.Text[ _curLineNumber];
+      _curLine = _curBlock.Text[ _curLineNumber];
     }
 
 
@@ -67,14 +67,14 @@ namespace AspCodeAnalyzer {
       }
     }
 
-    public String GetCurLine() {
+    public string GetCurLine() {
       if ( _eof ) {
         return null;
       }
       return _curLine;
     }
 
-    public void SetCurLine( String pLine) 
+    public void SetCurLine( string pLine)
     {
       _curLine = pLine;
       _curBlock.Text[_curLineNumber] = pLine;

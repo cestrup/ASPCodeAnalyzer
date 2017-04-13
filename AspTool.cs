@@ -1,15 +1,14 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer {
   public class AspTool {
 
-    public static bool AppendVariables( ArrayList pVariables, BlockReader pReader) {
-      bool found = false;
-      String searchText;
-      String line = pReader.GetCurLine();
+    public static bool AppendVariables( List<Variable> pVariables, BlockReader pReader) {
+      var found = false;
+      string searchText;
+      var line = pReader.GetCurLine();
       searchText = "dim";
-      int dimIndex = IdentifierPos( line, searchText);
+      var dimIndex = IdentifierPos( line, searchText);
       if (dimIndex == -1) {
         searchText = "const";
         dimIndex = IdentifierPos( line, searchText);
@@ -17,7 +16,7 @@ namespace AspCodeAnalyzer {
       if (dimIndex == -1 ) {
         return false;
       }
-      int objDefPos = line.IndexOf( ":");
+      var objDefPos = line.IndexOf( ":");
       if (objDefPos != -1 ) 
       {
         pReader.SetCurLine( line.Substring( objDefPos));
@@ -26,9 +25,9 @@ namespace AspCodeAnalyzer {
       {
         pReader.SetCurLine( "");
       }
-      String[] vars = line.Substring( dimIndex + searchText.Length).Trim().Split( new char[] {','});
+      var vars = line.Substring( dimIndex + searchText.Length).Trim().Split( new char[] {','});
       for (int i = 0; i < vars.Length; i++) {
-        String curVar = vars[ i].Trim();
+        var curVar = vars[ i].Trim();
         if (curVar.Length != 0) {
           int j = 0; 
           while ( j < curVar.Length && IsVariableCharacter( curVar[ j]) ) {
@@ -38,7 +37,7 @@ namespace AspCodeAnalyzer {
 		  if (j > 0)
 			{
 				curVar = curVar.Substring(0, j);
-				Variable var = new Variable(curVar, pReader.GetLineNumber());
+				var var = new Variable(curVar, pReader.GetLineNumber());
 				pVariables.Add(var);
 				found = true;
 			}
@@ -48,7 +47,7 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public static int IdentifierPos( String pText, String pIdentifier) {
+    public static int IdentifierPos( string pText, string pIdentifier) {
       int pos = pText.IndexOf( pIdentifier);
       while (pos > 0) {
         if (pos == 0 || !AspTool.IsVariableCharacter( pText[ pos - 1 ])) {
@@ -62,7 +61,7 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public static bool ContainsIdentifier( String pText, String pIdentifier) {
+    public static bool ContainsIdentifier( string pText, string pIdentifier) {
       int pos = pText.IndexOf( pIdentifier);
       while (pos > 0) {
         if (pos == 0 || ((pText[pos-1] != '.') && !AspTool.IsVariableCharacter( pText[ pos - 1 ]))) {
@@ -75,7 +74,7 @@ namespace AspCodeAnalyzer {
       return false;
     }
 
-    public static void CheckSubContext( ref String pFunctionName, ref String pFunctionType, BlockReader pReader) {
+    public static void CheckSubContext( ref string pFunctionName, ref string pFunctionType, BlockReader pReader) {
       pFunctionName = null;
       pFunctionType = null;
       int pos;
@@ -133,7 +132,7 @@ namespace AspCodeAnalyzer {
     }
 
     public static bool IsVariableCharacter( char pChar) {
-      pChar = Char.ToLower( pChar);
+      pChar = char.ToLower( pChar);
       if (pChar >= 'a' && pChar <= 'z') {
         return true;
       }

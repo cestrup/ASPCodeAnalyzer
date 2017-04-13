@@ -2,39 +2,13 @@ using System;
 
 namespace AspCodeAnalyzer {
   public class Variable {
-    private String _name;
-    private int _row;
-    private bool _used;
+    public string Name { get; }
+    public int Row { get; }
+    public bool Used { get; set; }
 
-
-    public String Name {
-      get { 
-        return _name;
-      }
-    }
-
-    public int Row {
-      get { 
-        return _row;
-      }
-    }
-
-
-    public bool Used {
-      get {
-        return _used;
-      }
-      set {
-        _used = value;
-      }
-    }
-
-
-
-    public Variable( String pName, int pRow) {
-      _name = pName;
-      _row = pRow;
-
+    public Variable( string pName, int pRow) {
+      Name = pName;
+      Row = pRow;
     }
   }
 }

@@ -2,20 +2,12 @@ using System;
 
 namespace AspCodeAnalyzer {
   public class CommentBlock {
-    private String _content;
     private LineReader _lineReader;
-
-
-    public String Content {
-      get {
-        return _content;
-      }
-    }
-    
+    public string Content { get; private set; }
 
     public CommentBlock(LineReader pLineReader) {
       _lineReader = pLineReader;
-      _content = "";
+      Content = "";
     }
 
     public void Read() {
@@ -26,10 +18,10 @@ namespace AspCodeAnalyzer {
           _lineReader.Get1();
           return;
         } else {
-          _content += _lineReader.Get1();
+          Content += _lineReader.Get1();
         }
         if (_lineReader.Eol) {
-          _content += " ";
+          Content += " ";
           _lineReader.ReadLine();
         }
       }

@@ -1,60 +1,28 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer {
   public class AspFunction {
-    private String _name;
-    private String _functionType;
+    private string _functionType;
     private AspFile _aspFile;
-    private String _scopeText = "";
-    private int _row = 1;
-    private bool _used = false;
+    private string _scopeText = "";
 
-    public AspFunction(String pName, String pFunctionType, AspFile pAspFile, int pRow) {
-      _name = pName;
+      public AspFunction(string pName, string pFunctionType, AspFile pAspFile, int pRow) {
+      Name = pName;
       _functionType = pFunctionType;
       _aspFile = pAspFile;
-      _row = pRow;
+      Row = pRow;
     }
 
 
-    public bool Used {
-      get {
-        return _used;
-      }
-      set {
-        _used = value;
-      }
-    }
+    public bool Used { get; set; } = false;
+    public string Name { get; set; }
+    public int Row { get; set; } = 1;
 
-
-
-    public String Name {
-      get {
-        return _name;
-      }
-      set {
-        _name = value;
-      }
-    }
-
-
-    public int Row {
-      get {
-        return _row;
-      }
-      set {
-        _row = value;
-      }
-    }
-
-
-
-    private static void CheckVariables( String pLine, ArrayList pVariables) {
+    private static void CheckVariables( string pLine, List<Variable> pVariables) {
       int i = 0; 
       while (i < pVariables.Count) {
-        if (AspTool.ContainsIdentifier( pLine, ((Variable) pVariables[ i]).Name)) {
+        if (AspTool.ContainsIdentifier( pLine, pVariables[ i].Name)) {
           pVariables.RemoveAt( i);
         } else {
           i++;
@@ -64,8 +32,7 @@ namespace AspCodeAnalyzer {
 
 
     public void PseudoParseCode( BlockReader pReader) {
-
-      ArrayList variables = new ArrayList();
+      var variables = new List<Variable>();
 
       while ( pReader.GetCurLine() != null ) {
         AspTool.AppendVariables( variables, pReader);
@@ -74,7 +41,7 @@ namespace AspCodeAnalyzer {
         if ( endPos >= 0 ) {          
           if  ( pReader.GetCurLine().IndexOf( _functionType, endPos) >= 0 ) {
             for (int i = 0; i < variables.Count; i++) {
-              Variable curVariable = (Variable) variables[ i];
+              var curVariable = variables[ i];
               _aspFile.PublishResult( new Result( _aspFile.Filename, curVariable.Row, "Unused Variable " + curVariable.Name));
             }
             pReader.ReadLine();
@@ -87,8 +54,8 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindFunction( String pFunction) {
-      if ( pFunction == _name) {
+    public bool FindFunction( string pFunction) {
+      if ( pFunction == Name) {
         // Nicht nach Funktionsaufrufen bzw. Zuweisungen in der gesuchten Funktion suchen
         return false;
       }
@@ -98,7 +65,7 @@ namespace AspCodeAnalyzer {
       return false;
     }
 
-    public bool FindVariable( String pVariable) {
+    public bool FindVariable( string pVariable) {
       if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
         return true;
       }

@@ -1,59 +1,36 @@
 using System;
 using System.IO;
-using System.Collections;
-using System.Diagnostics;
-using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer {
   public class Analyzer {
-    private String _basePath;
-    private ArrayList _files = new ArrayList();
     private AnalyzerGui _gui;
     private DateTime _start;
 
+    public string BasePath { get; set; }
+    public List<AspFile> Files { get; set; } = new List<AspFile>();
 
-    public String BasePath {
-      get {
-        return _basePath;
-      }
-      set {
-        _basePath = value;
-      }
-    }
-
-    public ArrayList Files {
-      get {
-        return _files;
-      }
-      set {
-        _files = value;
-      }
-    }
-
-
-    public void AddGeneralError( String pErrorText) {
+     public void AddGeneralError( string pErrorText) {
       _gui.lbError.Items.Add( pErrorText);
       UpdateElapsedTime();
     }
 
-
-    public AspFile AddAspFile( String pFilename) {
-      AspFile res;
-
+    public AspFile AddAspFile( string pFilename) {
       pFilename = pFilename.ToLower();
-      for (int i = 0; i < _files.Count; i++) {
-        AspFile curFile = (AspFile) _files[ i];
+
+      for (int i = 0; i < Files.Count; i++) {
+        var curFile = Files[ i];
         if (curFile.Filename == pFilename) {
           return curFile;
         }        
       }
-      res = new AspFile( pFilename, this);
-      _files.Add( res);
+      var res = new AspFile( pFilename, this);
+      Files.Add( res);
       return res;
     }
 
 
-    private void AddFiles( String pPath) {
+    private void AddFiles( string pPath) {
       string[] aspFiles;
       string[] incFiles;
       _gui.lblCurrentAction.Text = "Scanning " + pPath;
@@ -68,12 +45,12 @@ namespace AspCodeAnalyzer {
 
       for( int i = 0; i < aspFiles.Length; i++) {
         AddAspFile( aspFiles[ i]);
-        _gui.lblAnalyzedFiles.Text = _files.Count.ToString();
+        _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
         UpdateElapsedTime();
       }
       for( int i = 0; i < incFiles.Length; i++) {
         AddAspFile( incFiles[ i]);
-        _gui.lblAnalyzedFiles.Text = _files.Count.ToString();
+        _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
         UpdateElapsedTime();
       }
       string[] dirs = Directory.GetDirectories( pPath);
@@ -86,33 +63,33 @@ namespace AspCodeAnalyzer {
     public void Analyze() {
       try {
         _start = DateTime.Now;
-        if ( !Directory.Exists( _basePath) ) {
-          AddGeneralError( "Directory " + _basePath + " does not exist");          
+        if ( !Directory.Exists( BasePath) ) {
+          AddGeneralError( "Directory " + BasePath + " does not exist");
         } else {
           SetCurrentAction( "Scanning *.asp;*.inc");
 
-          AddFiles( _basePath);
+          AddFiles( BasePath);
           int i = 0; 
-          while ( i < _files.Count) {
-            AspFile curFile = (AspFile) _files[ i];
+          while ( i < Files.Count) {
+            var curFile = Files[ i];
             SetCurrentAction( "Analyzing " + curFile.Filename);
             curFile.Read();
-            _gui.lblAnalyzedFiles.Text = String.Format( "{0} / {1}", i + 1, _files.Count);
+            _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             i++;        
           }
-          for ( i = 0; i < _files.Count; i++) {
-            AspFile curFile = (AspFile) _files[ i];
+          for ( i = 0; i < Files.Count; i++) {
+            var curFile = Files[ i];
             SetCurrentAction( "Finding Unused Elements " + curFile.Filename);
-            _gui.lblAnalyzedFiles.Text = String.Format( "{0} / {1}", i + 1, _files.Count);
+            _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             curFile.CheckUsedVariables();
             curFile.CheckUsedFunctions();
           }
-          for ( i = 0; i < _files.Count; i++) {
-            AspFile curFile = (AspFile) _files[ i];
+          for ( i = 0; i < Files.Count; i++) {
+            var curFile = Files[ i];
             SetCurrentAction( "Reporting Unused Elements " + curFile.Filename);
-            _gui.lblAnalyzedFiles.Text = String.Format( "{0} / {1}", i + 1, _files.Count);
+            _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             curFile.ReportUnusedVariables();
             curFile.ReportUnusedFunctions();
@@ -137,7 +114,7 @@ namespace AspCodeAnalyzer {
 
 
 
-    public void SetCurrentAction( String pCurrentAction) {
+    public void SetCurrentAction( string pCurrentAction) {
       _gui.lblCurrentAction.Text = pCurrentAction;
       UpdateElapsedTime();
     }
@@ -147,9 +124,9 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public Analyzer( AnalyzerGui pGui, String pBasePath) {
+    public Analyzer( AnalyzerGui pGui, string pBasePath) {
       _gui = pGui;
-      _basePath = pBasePath;
+      BasePath = pBasePath;
     }
   }
 }

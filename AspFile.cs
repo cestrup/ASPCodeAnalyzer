@@ -1,50 +1,23 @@
 using System;
-using System.Text;
 using System.IO;
-using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 
 namespace AspCodeAnalyzer {
   public class AspFile  {
-    private String _filename;
-    private bool _isRead;
     private Analyzer _analyzer;
-    private ArrayList _includes = new ArrayList();
-    private ArrayList _blocks = new ArrayList();
-    private ArrayList _variables = new ArrayList();
-    private ArrayList _classes = new ArrayList();
-    private ArrayList _functions = new ArrayList();
-    private String _scopeText = "";
+    private List<CodeBlock> _blocks = new List<CodeBlock>();
+    private List<Variable> _variables = new List<Variable>();
+    private List<AspClass> _classes = new List<AspClass>();
+    private List<AspFunction> _functions = new List<AspFunction>();
+    private string _scopeText = "";
 
 
-    public bool IsRead {
-      get {
-        return _isRead;
-      }
-    }
+    public bool IsRead { get; private set; }
+    public List<AspFile> Includes { get; set; } = new List<AspFile>();
+    public string Filename { get; set; }
 
-    public ArrayList Includes {
-      get {
-        return _includes;
-      }
-      set {
-        _includes = value;
-      }
-    }
-
-
-    public String Filename {
-      get {
-        return _filename;
-      }
-      set {
-        _filename = value;
-      }
-    }
-
-
-    private static String GetSandwichedValue( String pLine, String pPrefix, String pPostfix, int pStartPos) {
+    private static string GetSandwichedValue( string pLine, string pPrefix, string pPostfix, int pStartPos) {
       int pos1 = pLine.IndexOf( pPrefix, pStartPos);
       if (pos1 == -1) {
         return null;
@@ -57,7 +30,7 @@ namespace AspCodeAnalyzer {
     }
 
 
-    private bool IsIncludeLine( String pLine, int pPos) {
+    private bool IsIncludeLine( string pLine, int pPos) {
       int pos1 = pLine.IndexOf( "#include", pPos);
       if (pos1 == -1) {
         return false;
@@ -66,16 +39,16 @@ namespace AspCodeAnalyzer {
       if (pos1 == -1) {
         return false;
       }
-      String include = GetSandwichedValue( pLine, "\"", "\"", pos1);
+      var include = GetSandwichedValue( pLine, "\"", "\"", pos1);
       if (include == null) {
         return false;
       }
-      String name = Path.GetFullPath( Path.GetDirectoryName( _filename) + "\\" + include);
+      var name = Path.GetFullPath( Path.GetDirectoryName( Filename) + "\\" + include);
       if (!File.Exists( name)) {
-        _analyzer.AddGeneralError( name + " (referenced by " + _filename  + ") does not exist");
+        _analyzer.AddGeneralError( name + " (referenced by " + Filename  + ") does not exist");
       } else {
-        AspFile includeFile = _analyzer.AddAspFile( name);
-        _includes.Add( includeFile);
+        var includeFile = _analyzer.AddAspFile( name);
+        Includes.Add( includeFile);
       }
       return true;
     }
@@ -83,10 +56,10 @@ namespace AspCodeAnalyzer {
 
 
     private void PseudoParseCode() {
-      String functionName = null;
-      String functionType = null;
+      string functionName = null;
+      string functionType = null;
 
-      BlockReader reader = new BlockReader( _blocks);
+      var reader = new BlockReader( _blocks);
       reader.ReadLine();
       while (reader.GetCurLine() != null ) {
         AspTool.AppendVariables( _variables, reader);
@@ -95,11 +68,11 @@ namespace AspCodeAnalyzer {
           _scopeText += reader.GetCurLine() + Environment.NewLine;
           reader.ReadLine();
         } else if ( functionType == "function" ||  functionType == "sub" ) {
-          AspFunction curFunction = new AspFunction( functionName, functionType, this, reader.GetLineNumber() - 1);
+          var curFunction = new AspFunction( functionName, functionType, this, reader.GetLineNumber() - 1);
           curFunction.PseudoParseCode( reader);
           _functions.Add( curFunction);
         } else if ( functionType == "class" ) {
-          AspClass curClass = new AspClass( functionName, this);
+          var curClass = new AspClass( functionName, this);
           curClass.PseudoParseCode( reader);
           _classes.Add( curClass);
         }
@@ -108,21 +81,21 @@ namespace AspCodeAnalyzer {
 
 
     public void Read() {
-      if ( _isRead) {
+      if ( IsRead) {
         return;
       }
-      _isRead = true;
-      if ( !File.Exists( _filename)) {
-        _analyzer.AddGeneralError( "File " + _filename + " does not exist");
+      IsRead = true;
+      if ( !File.Exists( Filename)) {
+        _analyzer.AddGeneralError( "File " + Filename + " does not exist");
         return;
       }
-      LineReader lineReader = new LineReader( _filename);
+      var lineReader = new LineReader( Filename);
       lineReader.ReadLine();
-      int posComment;
-      int posCode;
 
-      while (lineReader.CurLine != null) {
-        if (lineReader.Eol) {
+        while (lineReader.CurLine != null) {
+          int posComment;
+          int posCode;
+          if (lineReader.Eol) {
           posComment = -1;
           posCode = -1;
         }
@@ -136,12 +109,12 @@ namespace AspCodeAnalyzer {
         } else {
           if ( posComment == -1 || ( ( posCode < posComment) &&  posCode != -1 ) ) {
             lineReader.Col = posCode + 2;
-            CodeBlock cb = new CodeBlock( lineReader);
+            var cb = new CodeBlock( lineReader);
             cb.Read();
             _blocks.Add( cb);
           } else {
             lineReader.Col = posComment +  4;
-            CommentBlock commBl = new CommentBlock( lineReader);
+            var commBl = new CommentBlock( lineReader);
             commBl.Read();
             IsIncludeLine( commBl.Content, 0);
           }
@@ -152,29 +125,29 @@ namespace AspCodeAnalyzer {
       PseudoParseCode();
     }
 
-    public AspFile( String pFilename, Analyzer pAnalyzer) {
-      _filename = pFilename;
+    public AspFile( string pFilename, Analyzer pAnalyzer) {
+      Filename = pFilename;
       _analyzer = pAnalyzer;
     }
 
-    public bool FindFunction( String pFunction) {
+    public bool FindFunction( string pFunction) {
       if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
         return true;
       }
       for (int i = 0; i < _classes.Count; i++) {
-        AspClass curClass = (AspClass) _classes[ i];
+        var curClass = _classes[ i];
         if (curClass.FindFunction( pFunction) ) {
           return true;
         }        
       }
       for (int i = 0; i < _functions.Count; i++) {
-        AspFunction curFunction = (AspFunction) _functions[ i];
+        var curFunction = _functions[ i];
         if (curFunction.FindFunction( pFunction) ) {
           return true;
         }        
       }
-      for (int i = 0; i < _includes.Count; i++) {
-        AspFile curInclude = (AspFile) _includes[ i];
+      for (int i = 0; i < Includes.Count; i++) {
+        var curInclude = Includes[ i];
         if (curInclude.FindFunction( pFunction)) {
           return true;
         }
@@ -183,24 +156,24 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindVariable( String pVariable) {
+    public bool FindVariable( string pVariable) {
       if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
         return true;
       }
       for (int i = 0; i < _classes.Count; i++) {
-        AspClass curClass = (AspClass) _classes[ i];
+        var curClass = _classes[ i];
         if (curClass.FindVariable( pVariable) ) {
           return true;
         }        
       }
       for (int i = 0; i < _functions.Count; i++) {
-        AspFunction curFunction = (AspFunction) _functions[ i];
+        var curFunction = _functions[ i];
         if (curFunction.FindVariable( pVariable) ) {
           return true;
         }        
       }
-      for (int i = 0; i < _includes.Count; i++) {
-        AspFile curInclude = (AspFile) _includes[ i];
+      for (int i = 0; i < Includes.Count; i++) {
+        var curInclude = Includes[ i];
         if (curInclude.FindVariable( pVariable)) {
           return true;
         }
@@ -210,10 +183,10 @@ namespace AspCodeAnalyzer {
 
 
 
-    public void AddVariables( ArrayList pTransitiveVariableList) {
+    public void AddVariables( List<Variable> pTransitiveVariableList) {
       pTransitiveVariableList.AddRange( _variables);
-      for (int i = 0; i < _includes.Count; i++) {
-        AspFile curInclude = (AspFile) _includes[ i];
+      for (int i = 0; i < Includes.Count; i++) {
+        var curInclude = Includes[ i];
         curInclude.AddVariables( pTransitiveVariableList);
       }
 
@@ -221,10 +194,10 @@ namespace AspCodeAnalyzer {
 
 
     public void CheckUsedVariables() {
-      ArrayList transitiveVariableList = new ArrayList();
+      var transitiveVariableList = new List<Variable>();
       AddVariables( transitiveVariableList);
       for (int i = 0; i < transitiveVariableList.Count; i++) {
-        Variable curVariable = (Variable) transitiveVariableList[ i];
+        var curVariable = transitiveVariableList[ i];
         if (!curVariable.Used) {
           if ( FindVariable( curVariable.Name)) {
             curVariable.Used = true;
@@ -236,9 +209,9 @@ namespace AspCodeAnalyzer {
 
     public void ReportUnusedVariables() {
       for (int i = 0; i < _variables.Count; i++) {
-        Variable curVariable = (Variable) _variables[ i];
+        var curVariable = _variables[ i];
         if (!curVariable.Used) {
-          PublishResult( new Result( _filename, curVariable.Row, "Unused Global Variable " + curVariable.Name));
+          PublishResult( new Result( Filename, curVariable.Row, "Unused Global Variable " + curVariable.Name));
         }
       }
     }
@@ -246,10 +219,10 @@ namespace AspCodeAnalyzer {
 
 
 
-    public void AddFunctions( ArrayList pTransitiveFunctionList) {
+    public void AddFunctions( List<AspFunction> pTransitiveFunctionList) {
       pTransitiveFunctionList.AddRange( _functions);
-      for (int i = 0; i < _includes.Count; i++) {
-        AspFile curInclude = (AspFile) _includes[ i];
+      for (int i = 0; i < Includes.Count; i++) {
+        var curInclude = Includes[ i];
         curInclude.AddFunctions( pTransitiveFunctionList);
       }
 
@@ -257,10 +230,10 @@ namespace AspCodeAnalyzer {
 
 
     public void CheckUsedFunctions() {
-      ArrayList transitiveFunctionList = new ArrayList();
+      var transitiveFunctionList = new List<AspFunction>();
       AddFunctions( transitiveFunctionList);
       for (int i = 0; i < transitiveFunctionList.Count; i++) {
-        AspFunction curFunction = (AspFunction) transitiveFunctionList[ i];
+        var curFunction = transitiveFunctionList[ i];
         if (!curFunction.Used) {
           if ( FindFunction( curFunction.Name)) {
             curFunction.Used = true;
@@ -272,9 +245,9 @@ namespace AspCodeAnalyzer {
 
     public void ReportUnusedFunctions() {
       for (int i = 0; i < _functions.Count; i++) {
-        AspFunction curFunction = (AspFunction) _functions[ i];
+        var curFunction = _functions[ i];
         if (!curFunction.Used) {
-          PublishResult( new Result( _filename, curFunction.Row, "Unused Function " + curFunction.Name));
+          PublishResult( new Result( Filename, curFunction.Row, "Unused Function " + curFunction.Name));
         }
       }
     }

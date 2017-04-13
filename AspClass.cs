@@ -1,26 +1,25 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace AspCodeAnalyzer {
 
   public class AspClass {
-    private String _name;
+    private string _name;
     private AspFile _aspFile;
-    private ArrayList _functions = new ArrayList();
-    private String _scopeText = "";
+    private List<AspFunction> _functions = new List<AspFunction>();
+    private string _scopeText = "";
 
-    public AspClass( String pName, AspFile pAspFile) {
+    public AspClass( string pName, AspFile pAspFile) {
       _name = pName;
       _aspFile = pAspFile;
     }
 
 
     public void PseudoParseCode( BlockReader pReader) {
-      String functionName = null;
-      String functionType = null;
+      string functionName = null;
+      string functionType = null;
 
-      ArrayList variables = new ArrayList();
+      var variables = new List<Variable>();
 
       while ( pReader.GetCurLine() != null ) {
         int endPos = pReader.GetCurLine().IndexOf( "end ");
@@ -36,7 +35,7 @@ namespace AspCodeAnalyzer {
           _scopeText += pReader.GetCurLine() + Environment.NewLine;
           pReader.ReadLine();
         } else if ( functionType == "function" ||  functionType == "sub" ) {
-          AspFunction curFunction = new AspFunction( functionName, functionType, _aspFile, pReader.GetLineNumber() - 1);
+          var curFunction = new AspFunction( functionName, functionType, _aspFile, pReader.GetLineNumber() - 1);
           curFunction.PseudoParseCode( pReader);
           _functions.Add( curFunction);
         } else {
@@ -46,12 +45,12 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindFunction( String pFunction) {
+    public bool FindFunction( string pFunction) {
       if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
         return true;
       }
       for (int i = 0; i < _functions.Count; i++) {
-        AspFunction curFunction = (AspFunction) _functions[ i];
+        var curFunction = _functions[ i];
         if (curFunction.FindFunction( pFunction) ) {
           return true;
         }        
@@ -60,12 +59,12 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindVariable( String pVariable) {
+    public bool FindVariable( string pVariable) {
       if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
         return true;
       }
       for (int i = 0; i < _functions.Count; i++) {
-        AspFunction curFunction = (AspFunction) _functions[ i];
+        var curFunction = _functions[ i];
         if (curFunction.FindVariable( pVariable) ) {
           return true;
         }        

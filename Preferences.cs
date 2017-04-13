@@ -1,61 +1,33 @@
-using System;
 using Microsoft.Win32;
 
 namespace AspCodeAnalyzer {
 
   public class Preferences {
-    public const String VERSION = "1.0";
-    private String _registryPath;
-    private String _editorPath = "UEdit32.exe";
-    private String _filePattern = "\"{0}/{1}\"";
-    private String _lastUsedPath = "C:\\";
+    public const string VERSION = "1.0";
+    private string _registryPath;
 
-
-    public String EditorPath {
-      get {
-        return _editorPath;
-      }
-      set {
-        _editorPath = value;
-      }
-    }
-    public String FilePattern {
-      get {
-        return _filePattern;
-      }
-      set {
-        _filePattern = value;
-      }
-    }
-
-    public String LastUsedPath {
-      get {
-        return _lastUsedPath;
-      }
-      set {
-        _lastUsedPath = value;
-      }
-    }
-
+    public string EditorPath { get; set; } = "UEdit32.exe";
+    public string FilePattern { get; set; } = "\"{0}/{1}\"";
+    public string LastUsedPath { get; set; } = "C:\\";
 
     public void LoadPreferences() {
-      RegistryKey key = Registry.CurrentUser.OpenSubKey( _registryPath, true);
+      var key = Registry.CurrentUser.OpenSubKey( _registryPath, true);
       if ( key == null ) {
         return;
       }
-      _editorPath = (String) key.GetValue( "EditorPath");
-      _filePattern = (String) key.GetValue( "FilePattern");
-      _lastUsedPath = (String) key.GetValue( "LastUesedPath");
+      EditorPath = (string) key.GetValue( "EditorPath");
+      FilePattern = (string) key.GetValue( "FilePattern");
+      LastUsedPath = (string) key.GetValue( "LastUesedPath");
     }
 
     public void SavePreferences() {
-      RegistryKey key = Registry.CurrentUser.OpenSubKey( _registryPath, true);
+      var key = Registry.CurrentUser.OpenSubKey( _registryPath, true);
       if ( key == null ) {
         key = Registry.CurrentUser.CreateSubKey( _registryPath);
       }
-      key.SetValue( "EditorPath", _editorPath);
-      key.SetValue( "FilePattern", _filePattern);
-      key.SetValue( "LastUesedPath", _lastUsedPath);
+      key.SetValue( "EditorPath", EditorPath);
+      key.SetValue( "FilePattern", FilePattern);
+      key.SetValue( "LastUesedPath", LastUsedPath);
     }
 
     public Preferences() {
