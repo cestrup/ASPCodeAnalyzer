@@ -75,62 +75,48 @@ namespace AspCodeAnalyzer {
       return false;
     }
 
-    public static void CheckSubContext( ref string pFunctionName, ref string pFunctionType, BlockReader pReader) {
-      pFunctionName = null;
-      pFunctionType = null;
-      int pos;
-      pos = pReader.GetCurLine().IndexOf( "sub ");
-      if ( pos >= 0 ) {
-        if (pos == 0 || !AspTool.IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
-          pFunctionType = "sub";
-          int pos1 = pReader.GetCurLine().IndexOf( "(", pos);
-          if ( pos1 == -1 ) {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 4).Trim();
-            pReader.ReadLine();
-            return;
+      private static bool CheckSingleSubContext(string searchType, ref string pFunctionName, ref string pFunctionType, BlockReader pReader)
+      {
+          int pos = pReader.GetCurLine().IndexOf(searchType + " ");
+
+          if (pos >= 0 ) {
+              if (pos == 0 || !AspTool.IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
+                  pFunctionType = searchType;
+                  int pos1 = pReader.GetCurLine().IndexOf( "(", pos);
+                  if (pos1 == -1 ) {
+                      pFunctionName = pReader.GetCurLine().Substring( pos + searchType.Length + 1).Trim();
+                      pReader.ReadLine();
+                      return true;
+                  }
+                  else {
+                      pFunctionName = pReader.GetCurLine().Substring( pos + searchType.Length + 1, pos1 - pos - searchType.Length - 1).Trim();
+                      pReader.ReadLine();
+                      return true;
+                  }
+              }
           }
-          else {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 4, pos1 - pos - 4).Trim();
-            pReader.ReadLine();
-            return;
-          }
-        }
+
+          return false;
       }
-      pos = pReader.GetCurLine().IndexOf( "function ");
-      if ( pos >= 0 ) {
-        if (pos == 0 || !AspTool.IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
-          pFunctionType = "function";
-          int pos1 = pReader.GetCurLine().IndexOf( "(", pos);
-          if ( pos1 == -1 ) {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 9).Trim();
-            pReader.ReadLine();
-            return;
+
+      public static void CheckSubContext( ref string pFunctionName, ref string pFunctionType, BlockReader pReader)
+      {
+          pFunctionName = null;
+          pFunctionType = null;
+
+          if (CheckSingleSubContext("sub", ref pFunctionName, ref pFunctionType, pReader))
+          {
+              return;
           }
-          else {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 9, pos1 - pos - 9).Trim();
-            pReader.ReadLine();
-            return;
+          if (CheckSingleSubContext("function", ref pFunctionName, ref pFunctionType, pReader))
+          {
+              return;
           }
-        }
+          if (CheckSingleSubContext("class", ref pFunctionName, ref pFunctionType, pReader))
+          {
+              return;
+          }
       }
-      pos = pReader.GetCurLine().IndexOf( "class ");
-      if ( pos >= 0 ) {
-        if (pos == 0 || !AspTool.IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
-          pFunctionType = "class";
-          int pos1 = pReader.GetCurLine().IndexOf( "(", pos);
-          if ( pos1 == -1 ) {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 6).Trim();
-            pReader.ReadLine();
-            return;
-          }
-          else {
-            pFunctionName = pReader.GetCurLine().Substring( pos + 6, pos1 - pos - 6).Trim();
-            pReader.ReadLine();
-            return;
-          }
-        }
-      }
-    }
 
     public static bool IsVariableCharacter( char pChar) {
       pChar = char.ToLower( pChar);
