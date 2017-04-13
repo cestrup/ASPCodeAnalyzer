@@ -51,19 +51,15 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindFunction( string pFunction) {
-      if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
-        return true;
-      }
-      return _functions.Any(curFunction => curFunction.FindFunction(pFunction));
+    public bool FindFunction( string pFunction)
+    {
+        return AspTool.ContainsIdentifier( _scopeText, pFunction) || _functions.Any(curFunction => curFunction.FindFunction(pFunction));
     }
 
 
-    public bool FindVariable( string pVariable) {
-      if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
-        return true;
-      }
-      return _functions.Any(curFunction => curFunction.FindVariable(pVariable));
+    public bool FindVariable( string pVariable)
+    {
+        return AspTool.ContainsIdentifier( _scopeText, pVariable) || _functions.Any(curFunction => curFunction.FindVariable(pVariable));
     }
 
 

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AspCodeAnalyzer {
   public class Analyzer {
@@ -33,6 +34,7 @@ namespace AspCodeAnalyzer {
     private void AddFiles( string pPath) {
       string[] aspFiles;
       string[] incFiles;
+
       _gui.lblCurrentAction.Text = "Scanning " + pPath;
       UpdateElapsedTime();
       try {
@@ -70,28 +72,41 @@ namespace AspCodeAnalyzer {
           AddGeneralError( "Directory " + BasePath + " does not exist");
         } else {
           SetCurrentAction( "Scanning *.asp;*.inc");
+          var ignoredFiles = new List<string>() {"adovbs.asp"};
 
           AddFiles( BasePath);
-          int i = 0; 
+
+          int i = 0;
           while ( i < Files.Count) {
-            var curFile = Files[ i];
+            var curFile = Files[i];
             SetCurrentAction( "Analyzing " + curFile.Filename);
             curFile.Read();
             _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             i++;        
           }
+
+          foreach (var curFile in Files.Where(f => ignoredFiles.Any(s => string.Equals(Path.GetFileName(f.Filename), s, StringComparison.CurrentCultureIgnoreCase))))
+          {
+            curFile.MarkAllVariablesUsed();
+          }
+
           for ( i = 0; i < Files.Count; i++) {
-            var curFile = Files[ i];
-            SetCurrentAction( "Finding Unused Elements " + curFile.Filename);
+            var curFile = Files[i];
+
+            SetCurrentAction( "Finding unused variables " + curFile.Filename);
             _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             curFile.CheckUsedVariables();
+
+            SetCurrentAction( "Finding unused functions " + curFile.Filename);
+            UpdateElapsedTime();
             curFile.CheckUsedFunctions();
           }
+
           for ( i = 0; i < Files.Count; i++) {
-            var curFile = Files[ i];
-            SetCurrentAction( "Reporting Unused Elements " + curFile.Filename);
+            var curFile = Files[i];
+            SetCurrentAction( "Reporting unused elements " + curFile.Filename);
             _gui.lblAnalyzedFiles.Text = string.Format( "{0} / {1}", i + 1, Files.Count);
             UpdateElapsedTime();
             curFile.ReportUnusedVariables();

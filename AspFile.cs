@@ -3,7 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace AspCodeAnalyzer {
   public class AspFile  {
     private Analyzer _analyzer;
@@ -137,37 +136,22 @@ namespace AspCodeAnalyzer {
       _analyzer = pAnalyzer;
     }
 
-    public bool FindFunction( string pFunction) {
-      if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
-        return true;
-      }
-      if (_classes.Any(curClass => curClass.FindFunction( pFunction)))
-      {
-          return true;
-      }
-      if (_functions.Any(curFunction => curFunction.FindFunction( pFunction)))
-      {
-          return true;
-      }
-      return Includes.Any(curInclude => curInclude.FindFunction(pFunction));
+    public bool FindFunction( string pFunction)
+    {
+        return AspTool.ContainsIdentifier(_scopeText, pFunction) ||
+               _classes.Any(curClass => curClass.FindFunction(pFunction)) ||
+               _functions.Any(curFunction => curFunction.FindFunction(pFunction)) ||
+               Includes.Any(curInclude => curInclude.FindFunction(pFunction));
     }
 
 
-    public bool FindVariable( string pVariable) {
-      if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
-        return true;
-      }
-      if (_classes.Any(curClass => curClass.FindVariable( pVariable)))
-      {
-          return true;
-      }
-      if (_functions.Any(curFunction => curFunction.FindVariable( pVariable)))
-      {
-          return true;
-      }
-      return Includes.Any(curInclude => curInclude.FindVariable(pVariable));
+    public bool FindVariable( string pVariable)
+    {
+        return AspTool.ContainsIdentifier(_scopeText, pVariable) ||
+                _classes.Any(curClass => curClass.FindVariable(pVariable)) ||
+                _functions.Any(curFunction => curFunction.FindVariable(pVariable)) ||
+                Includes.Any(curInclude => curInclude.FindVariable(pVariable));
     }
-
 
 
     public void AddVariables( List<Variable> pTransitiveVariableList)
@@ -180,13 +164,24 @@ namespace AspCodeAnalyzer {
     }
 
 
+    public void MarkAllVariablesUsed()
+    {
+      var transitiveVariableList = new List<Variable>();
+      AddVariables(transitiveVariableList);
+      foreach (var curVariable in transitiveVariableList)
+      {
+        curVariable.Used = true;
+      }
+    }
+
+
     public void CheckUsedVariables() {
       var transitiveVariableList = new List<Variable>();
-      AddVariables( transitiveVariableList);
+      AddVariables(transitiveVariableList);
       foreach (var curVariable in transitiveVariableList)
       {
           if (!curVariable.Used) {
-              if ( FindVariable( curVariable.Name)) {
+              if (FindVariable( curVariable.Name)) {
                   curVariable.Used = true;
               }
           }
@@ -201,9 +196,6 @@ namespace AspCodeAnalyzer {
             PublishResult( new Result( Filename, curVariable.Row, "Unused Global Variable " + curVariable.Name));
         }
     }
-
-
-
 
     public void AddFunctions( List<AspFunction> pTransitiveFunctionList)
     {
@@ -242,7 +234,5 @@ namespace AspCodeAnalyzer {
     public void PublishResult( Result pResult) {
       _analyzer.PublishResult( pResult);
     }
-
-
   }
 }

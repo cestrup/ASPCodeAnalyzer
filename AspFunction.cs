@@ -42,7 +42,7 @@ namespace AspCodeAnalyzer {
           if  ( pReader.GetCurLine().IndexOf( _functionType, endPos) >= 0 ) {
             foreach (var curVariable in variables)
             {
-                _aspFile.PublishResult( new Result( _aspFile.Filename, curVariable.Row, "Unused Variable " + curVariable.Name));
+                _aspFile.PublishResult( new Result( _aspFile.Filename, curVariable.Row, "Unused local variable " + curVariable.Name));
             }
             pReader.ReadLine();
             return;
@@ -54,22 +54,14 @@ namespace AspCodeAnalyzer {
     }
 
 
-    public bool FindFunction( string pFunction) {
-      if ( pFunction == Name) {
-        // Nicht nach Funktionsaufrufen bzw. Zuweisungen in der gesuchten Funktion suchen
-        return false;
-      }
-      if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
-        return true;
-      }
-      return false;
+    public bool FindFunction( string pFunction)
+    {
+        return pFunction != Name && AspTool.ContainsIdentifier( _scopeText, pFunction);
     }
 
-    public bool FindVariable( string pVariable) {
-      if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
-        return true;
-      }
-      return false;
+    public bool FindVariable( string pVariable)
+    {
+        return AspTool.ContainsIdentifier( _scopeText, pVariable);
     }
 
 

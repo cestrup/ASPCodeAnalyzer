@@ -50,13 +50,14 @@ namespace AspCodeAnalyzer {
 
     public static int IdentifierPos( string pText, string pIdentifier) {
       int pos = pText.IndexOf( pIdentifier);
-      while (pos > 0) {
-        if (pos == 0 || !AspTool.IsVariableCharacter( pText[ pos - 1 ])) {
-          if (pos + pIdentifier.Length >= pText.Length || !AspTool.IsVariableCharacter( pText[ pos + pIdentifier.Length])) {
+
+      while (pos >= 0) {
+        if (pos == 0 || !IsVariableCharacter( pText[ pos - 1 ])) {
+          if (pos + pIdentifier.Length >= pText.Length || !IsVariableCharacter( pText[ pos + pIdentifier.Length])) {
             return pos;
           }
         }
-        pos = pText.IndexOf( pIdentifier, pos + 1);        
+        pos = pText.IndexOf( pIdentifier, pos + 1);
       }
       return -1;
     }
@@ -64,9 +65,10 @@ namespace AspCodeAnalyzer {
 
     public static bool ContainsIdentifier( string pText, string pIdentifier) {
       int pos = pText.IndexOf( pIdentifier);
-      while (pos > 0) {
-        if (pos == 0 || ((pText[pos-1] != '.') && !AspTool.IsVariableCharacter( pText[ pos - 1 ]))) {
-          if (pos + pIdentifier.Length >= pText.Length || !AspTool.IsVariableCharacter( pText[ pos + pIdentifier.Length])) {
+
+      while (pos >= 0) {
+        if (pos == 0 || ((pText[pos-1] != '.') && !IsVariableCharacter( pText[ pos - 1 ]))) {
+          if (pos + pIdentifier.Length >= pText.Length || !IsVariableCharacter( pText[ pos + pIdentifier.Length])) {
             return true;
           }
         }
@@ -80,7 +82,7 @@ namespace AspCodeAnalyzer {
           int pos = pReader.GetCurLine().IndexOf(searchType + " ");
 
           if (pos >= 0 ) {
-              if (pos == 0 || !AspTool.IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
+              if (pos == 0 || !IsVariableCharacter( pReader.GetCurLine()[ pos - 1 ])) {
                   pFunctionType = searchType;
                   int pos1 = pReader.GetCurLine().IndexOf( "(", pos);
                   if (pos1 == -1 ) {
@@ -118,21 +120,9 @@ namespace AspCodeAnalyzer {
           }
       }
 
-    public static bool IsVariableCharacter( char pChar) {
-      pChar = char.ToLower( pChar);
-      if (pChar >= 'a' && pChar <= 'z') {
-        return true;
-      }
-      if (pChar >= '0' && pChar <= '9' ) {
-        return true;
-      }
-      if (pChar == '_' ) {
-        return true;
-      }
-      return false;
+    public static bool IsVariableCharacter (char pChar)
+    {
+      return (char.IsLetterOrDigit(pChar) || pChar == '_');
     }
-
-
-
   }
 }
