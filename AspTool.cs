@@ -26,22 +26,23 @@ namespace AspCodeAnalyzer {
         pReader.SetCurLine( "");
       }
       var vars = line.Substring( dimIndex + searchText.Length).Trim().Split( new char[] {','});
-      for (int i = 0; i < vars.Length; i++) {
-        var curVar = vars[ i].Trim();
-        if (curVar.Length != 0) {
-          int j = 0; 
-          while ( j < curVar.Length && IsVariableCharacter( curVar[ j]) ) {
-            j++;
-          }
+      foreach (string t in vars)
+      {
+          var curVar = t.Trim();
+          if (curVar.Length != 0) {
+              int j = 0; 
+              while ( j < curVar.Length && IsVariableCharacter( curVar[ j]) ) {
+                  j++;
+              }
 
-		  if (j > 0)
-			{
-				curVar = curVar.Substring(0, j);
-				var var = new Variable(curVar, pReader.GetLineNumber());
-				pVariables.Add(var);
-				found = true;
-			}
-		}          
+              if (j > 0)
+              {
+                  curVar = curVar.Substring(0, j);
+                  var var = new Variable(curVar, pReader.GetLineNumber());
+                  pVariables.Add(var);
+                  found = true;
+              }
+          }
       }
       return found;
     }

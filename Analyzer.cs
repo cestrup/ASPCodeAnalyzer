@@ -18,11 +18,11 @@ namespace AspCodeAnalyzer {
     public AspFile AddAspFile( string pFilename) {
       pFilename = pFilename.ToLower();
 
-      for (int i = 0; i < Files.Count; i++) {
-        var curFile = Files[ i];
-        if (curFile.Filename == pFilename) {
-          return curFile;
-        }        
+      foreach (var curFile in Files)
+      {
+          if (curFile.Filename == pFilename) {
+              return curFile;
+          }
       }
       var res = new AspFile( pFilename, this);
       Files.Add( res);
@@ -43,19 +43,22 @@ namespace AspCodeAnalyzer {
         return;
       }
 
-      for( int i = 0; i < aspFiles.Length; i++) {
-        AddAspFile( aspFiles[ i]);
-        _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
-        UpdateElapsedTime();
+      foreach (string t in aspFiles)
+      {
+          AddAspFile( t);
+          _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
+          UpdateElapsedTime();
       }
-      for( int i = 0; i < incFiles.Length; i++) {
-        AddAspFile( incFiles[ i]);
-        _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
-        UpdateElapsedTime();
+      foreach (string t in incFiles)
+      {
+          AddAspFile( t);
+          _gui.lblAnalyzedFiles.Text = Files.Count.ToString();
+          UpdateElapsedTime();
       }
-      string[] dirs = Directory.GetDirectories( pPath);
-      for ( int i = 0; i < dirs.Length; i++) {
-        AddFiles( dirs[i]);
+      var dirs = Directory.GetDirectories( pPath);
+      foreach (string t in dirs)
+      {
+          AddFiles( t);
       }
     }
 

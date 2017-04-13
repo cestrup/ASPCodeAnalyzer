@@ -5,8 +5,8 @@ using System.IO;
 namespace AspCodeAnalyzer {
   public class LineReader {
     StreamReader _reader;
-    public String CurLine { get; private set; }
-    public String Filename { get; }
+    public string CurLine { get; private set; }
+    public string Filename { get; }
     public int Row { get; private set; }
     public int Col { get; set; }
     public bool Eof { get; private set; }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AspCodeAnalyzer {
 
@@ -31,15 +32,20 @@ namespace AspCodeAnalyzer {
         }
         AspTool.AppendVariables( variables, pReader);
         AspTool.CheckSubContext( ref functionName, ref functionType, pReader);
-        if (functionType == null ) {
-          _scopeText += pReader.GetCurLine() + Environment.NewLine;
-          pReader.ReadLine();
-        } else if ( functionType == "function" ||  functionType == "sub" ) {
-          var curFunction = new AspFunction( functionName, functionType, _aspFile, pReader.GetLineNumber() - 1);
-          curFunction.PseudoParseCode( pReader);
-          _functions.Add( curFunction);
-        } else {
-          throw new Exception( "Class in Class??: " + _aspFile.Filename + " line: " + (pReader.GetLineNumber()-1).ToString());
+        switch (functionType)
+        {
+            case null:
+                _scopeText += pReader.GetCurLine() + Environment.NewLine;
+                pReader.ReadLine();
+                break;
+            case "function":
+            case "sub":
+                var curFunction = new AspFunction( functionName, functionType, _aspFile, pReader.GetLineNumber() - 1);
+                curFunction.PseudoParseCode( pReader);
+                _functions.Add( curFunction);
+                break;
+            default:
+                throw new Exception( "Class in Class??: " + _aspFile.Filename + " line: " + (pReader.GetLineNumber()-1).ToString());
         }
       }
     }
@@ -49,13 +55,7 @@ namespace AspCodeAnalyzer {
       if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
         return true;
       }
-      for (int i = 0; i < _functions.Count; i++) {
-        var curFunction = _functions[ i];
-        if (curFunction.FindFunction( pFunction) ) {
-          return true;
-        }        
-      }
-      return false;
+      return _functions.Any(curFunction => curFunction.FindFunction(pFunction));
     }
 
 
@@ -63,13 +63,7 @@ namespace AspCodeAnalyzer {
       if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
         return true;
       }
-      for (int i = 0; i < _functions.Count; i++) {
-        var curFunction = _functions[ i];
-        if (curFunction.FindVariable( pVariable) ) {
-          return true;
-        }        
-      }
-      return false;
+      return _functions.Any(curFunction => curFunction.FindVariable(pVariable));
     }
 
 

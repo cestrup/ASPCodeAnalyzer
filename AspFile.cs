@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace AspCodeAnalyzer {
@@ -64,17 +65,23 @@ namespace AspCodeAnalyzer {
       while (reader.GetCurLine() != null ) {
         AspTool.AppendVariables( _variables, reader);
         AspTool.CheckSubContext( ref functionName, ref functionType, reader);
-        if (functionType == null ) {
-          _scopeText += reader.GetCurLine() + Environment.NewLine;
-          reader.ReadLine();
-        } else if ( functionType == "function" ||  functionType == "sub" ) {
-          var curFunction = new AspFunction( functionName, functionType, this, reader.GetLineNumber() - 1);
-          curFunction.PseudoParseCode( reader);
-          _functions.Add( curFunction);
-        } else if ( functionType == "class" ) {
-          var curClass = new AspClass( functionName, this);
-          curClass.PseudoParseCode( reader);
-          _classes.Add( curClass);
+        switch (functionType)
+        {
+            case null:
+                _scopeText += reader.GetCurLine() + Environment.NewLine;
+                reader.ReadLine();
+                break;
+            case "function":
+            case "sub":
+                var curFunction = new AspFunction( functionName, functionType, this, reader.GetLineNumber() - 1);
+                curFunction.PseudoParseCode( reader);
+                _functions.Add( curFunction);
+                break;
+            case "class":
+                var curClass = new AspClass( functionName, this);
+                curClass.PseudoParseCode( reader);
+                _classes.Add( curClass);
+                break;
         }
       }
     }
@@ -134,25 +141,15 @@ namespace AspCodeAnalyzer {
       if (AspTool.ContainsIdentifier( _scopeText, pFunction)) {
         return true;
       }
-      for (int i = 0; i < _classes.Count; i++) {
-        var curClass = _classes[ i];
-        if (curClass.FindFunction( pFunction) ) {
+      if (_classes.Any(curClass => curClass.FindFunction( pFunction)))
+      {
           return true;
-        }        
       }
-      for (int i = 0; i < _functions.Count; i++) {
-        var curFunction = _functions[ i];
-        if (curFunction.FindFunction( pFunction) ) {
+      if (_functions.Any(curFunction => curFunction.FindFunction( pFunction)))
+      {
           return true;
-        }        
       }
-      for (int i = 0; i < Includes.Count; i++) {
-        var curInclude = Includes[ i];
-        if (curInclude.FindFunction( pFunction)) {
-          return true;
-        }
-      }
-      return false;
+      return Includes.Any(curInclude => curInclude.FindFunction(pFunction));
     }
 
 
@@ -160,96 +157,85 @@ namespace AspCodeAnalyzer {
       if (AspTool.ContainsIdentifier( _scopeText, pVariable)) {
         return true;
       }
-      for (int i = 0; i < _classes.Count; i++) {
-        var curClass = _classes[ i];
-        if (curClass.FindVariable( pVariable) ) {
+      if (_classes.Any(curClass => curClass.FindVariable( pVariable)))
+      {
           return true;
-        }        
       }
-      for (int i = 0; i < _functions.Count; i++) {
-        var curFunction = _functions[ i];
-        if (curFunction.FindVariable( pVariable) ) {
+      if (_functions.Any(curFunction => curFunction.FindVariable( pVariable)))
+      {
           return true;
-        }        
       }
-      for (int i = 0; i < Includes.Count; i++) {
-        var curInclude = Includes[ i];
-        if (curInclude.FindVariable( pVariable)) {
-          return true;
-        }
-      }
-      return false;
+      return Includes.Any(curInclude => curInclude.FindVariable(pVariable));
     }
 
 
 
-    public void AddVariables( List<Variable> pTransitiveVariableList) {
-      pTransitiveVariableList.AddRange( _variables);
-      for (int i = 0; i < Includes.Count; i++) {
-        var curInclude = Includes[ i];
-        curInclude.AddVariables( pTransitiveVariableList);
-      }
-
+    public void AddVariables( List<Variable> pTransitiveVariableList)
+    {
+        pTransitiveVariableList.AddRange( _variables);
+        foreach (var curInclude in Includes)
+        {
+            curInclude.AddVariables( pTransitiveVariableList);
+        }
     }
 
 
     public void CheckUsedVariables() {
       var transitiveVariableList = new List<Variable>();
       AddVariables( transitiveVariableList);
-      for (int i = 0; i < transitiveVariableList.Count; i++) {
-        var curVariable = transitiveVariableList[ i];
-        if (!curVariable.Used) {
-          if ( FindVariable( curVariable.Name)) {
-            curVariable.Used = true;
+      foreach (var curVariable in transitiveVariableList)
+      {
+          if (!curVariable.Used) {
+              if ( FindVariable( curVariable.Name)) {
+                  curVariable.Used = true;
+              }
           }
-        }
       }
     }
 
 
-    public void ReportUnusedVariables() {
-      for (int i = 0; i < _variables.Count; i++) {
-        var curVariable = _variables[ i];
-        if (!curVariable.Used) {
-          PublishResult( new Result( Filename, curVariable.Row, "Unused Global Variable " + curVariable.Name));
+    public void ReportUnusedVariables()
+    {
+        foreach (var curVariable in _variables.Where(s => !s.Used))
+        {
+            PublishResult( new Result( Filename, curVariable.Row, "Unused Global Variable " + curVariable.Name));
         }
-      }
     }
 
 
 
 
-    public void AddFunctions( List<AspFunction> pTransitiveFunctionList) {
-      pTransitiveFunctionList.AddRange( _functions);
-      for (int i = 0; i < Includes.Count; i++) {
-        var curInclude = Includes[ i];
-        curInclude.AddFunctions( pTransitiveFunctionList);
-      }
-
+    public void AddFunctions( List<AspFunction> pTransitiveFunctionList)
+    {
+        pTransitiveFunctionList.AddRange( _functions);
+        foreach (var curInclude in Includes)
+        {
+            curInclude.AddFunctions( pTransitiveFunctionList);
+        }
     }
 
 
     public void CheckUsedFunctions() {
       var transitiveFunctionList = new List<AspFunction>();
       AddFunctions( transitiveFunctionList);
-      for (int i = 0; i < transitiveFunctionList.Count; i++) {
-        var curFunction = transitiveFunctionList[ i];
-        if (!curFunction.Used) {
-          if ( FindFunction( curFunction.Name)) {
-            curFunction.Used = true;
+
+      foreach (var curFunction in transitiveFunctionList)
+      {
+          if (!curFunction.Used) {
+              if ( FindFunction( curFunction.Name)) {
+                  curFunction.Used = true;
+              }
           }
-        }
       }
     }
 
 
-    public void ReportUnusedFunctions() {
-      for (int i = 0; i < _functions.Count; i++) {
-        var curFunction = _functions[ i];
-        if (!curFunction.Used) {
-          PublishResult( new Result( Filename, curFunction.Row, "Unused Function " + curFunction.Name));
+    public void ReportUnusedFunctions()
+    {
+        foreach (var curFunction in _functions.Where(s => !s.Used))
+        {
+            PublishResult( new Result( Filename, curFunction.Row, "Unused Function " + curFunction.Name));
         }
-      }
     }
 
 

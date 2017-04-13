@@ -40,9 +40,9 @@ namespace AspCodeAnalyzer {
         int endPos = pReader.GetCurLine().IndexOf( "end ");
         if ( endPos >= 0 ) {          
           if  ( pReader.GetCurLine().IndexOf( _functionType, endPos) >= 0 ) {
-            for (int i = 0; i < variables.Count; i++) {
-              var curVariable = variables[ i];
-              _aspFile.PublishResult( new Result( _aspFile.Filename, curVariable.Row, "Unused Variable " + curVariable.Name));
+            foreach (var curVariable in variables)
+            {
+                _aspFile.PublishResult( new Result( _aspFile.Filename, curVariable.Row, "Unused Variable " + curVariable.Name));
             }
             pReader.ReadLine();
             return;
